@@ -24,7 +24,6 @@ export async function GET() {
       name: true,
       email: true,
       image: true,
-      plan: true,
       createdAt: true,
       _count: { select: { documents: true } },
     },
@@ -73,7 +72,7 @@ export async function PATCH(request: Request) {
   const updated = await prisma.user.update({
     where: { id: session.user.id },
     data: updates,
-    select: { id: true, name: true, email: true, plan: true },
+    select: { id: true, name: true, email: true },
   });
 
   return NextResponse.json(updated);

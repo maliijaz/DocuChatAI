@@ -1,16 +1,5 @@
-export type Plan = "FREE" | "PRO" | "ENTERPRISE";
 export type DocumentStatus = "PROCESSING" | "READY" | "ERROR";
 export type MessageRole = "user" | "assistant";
-
-export interface PlanLimits {
-  maxDocuments: number;
-  maxFileSizeMB: number;
-  maxChatsPerDay: number;
-  maxDocumentSizeMB: number;
-  advancedModels: boolean;
-  multiDocumentChat: boolean;
-  priority: boolean;
-}
 
 export interface SearchResult {
   chunkId: string;
@@ -34,6 +23,7 @@ export interface DocumentWithStats {
   pageCount?: number | null;
   wordCount?: number | null;
   summary?: string | null;
+  insights?: string | null;
   createdAt: Date;
   _count?: {
     conversations: number;

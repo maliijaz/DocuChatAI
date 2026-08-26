@@ -7,7 +7,6 @@ import {
   FileText,
   LayoutDashboard,
   Settings,
-  CreditCard,
   LogOut,
   ChevronUp,
   Files,
@@ -25,7 +24,6 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/documents", label: "Documents", icon: Files },
-  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -92,7 +90,7 @@ export function Sidebar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem asChild>
-              <Link href="/settings">
+              <Link href="/dashboard/settings">
                 <Settings className="h-4 w-4" />
                 Settings
               </Link>

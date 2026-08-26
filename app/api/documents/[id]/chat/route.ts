@@ -4,8 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { bm25Search } from "@/lib/search";
 import { chatWithDocument } from "@/lib/ai";
-import { Plan, ChatMessage, SearchResult } from "@/lib/types";
-import { getDefaultModelForPlan, isModelAllowedForPlan } from "@/lib/models";
+import { ChatMessage } from "@/lib/types";
+import { resolveModel } from "@/lib/models";
 import { z } from "zod";
 
 const chatSchema = z.object({
@@ -97,16 +97,7 @@ export async function POST(
     (m) => ({ role: m.role as "user" | "assistant", content: m.content })
   );
 
-  // Resolve model: use requested model if allowed for plan, else default
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { plan: true },
-  });
-  const plan = (user?.plan as Plan) ?? "FREE";
-  const model =
-    requestedModel && isModelAllowedForPlan(requestedModel, plan)
-      ? requestedModel
-      : getDefaultModelForPlan(plan);
+  const model = resolveModel(requestedModel);
 
   // Stream response from AI provider
   let stream: ReadableStream;
@@ -195,4 +186,32 @@ export async function GET(
   });
 
   return NextResponse.json(conversations);
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const conversationId = searchParams.get("conversationId");
+  if (!conversationId) {
+    return NextResponse.json({ error: "conversationId is required" }, { status: 400 });
+  }
+
+  const conversation = await prisma.conversation.findUnique({
+    where: { id: conversationId, userId: session.user.id, documentId: params.id },
+  });
+
+  if (!conversation) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+
+  await prisma.conversation.delete({ where: { id: conversationId } });
+
+  return NextResponse.json({ success: true });
 }

@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileText, RefreshCw, AlertCircle } from "lucide-react";
+import { MAX_FILE_SIZE_MB } from "@/lib/limits";
 
 interface Document {
   id: string;
@@ -55,7 +56,7 @@ export default function DocumentsPage() {
         title="Documents"
         description="Upload PDFs and start intelligent conversations with them."
       />
-      <UploadArea onUploadComplete={() => fetchDocuments()} />
+      <UploadArea onUploadComplete={() => fetchDocuments()} maxSizeMB={MAX_FILE_SIZE_MB} />
 
       <div>
         <div className="flex items-center justify-between mb-4">

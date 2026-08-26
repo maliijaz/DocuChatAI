@@ -1,35 +1,20 @@
 import { SearchResult, ChatMessage } from "./types";
-import { getModelConfig, getDefaultModelForPlan } from "./models";
-import { chatWithAnthropic, generateSummaryAnthropic, extractKeyInsightsAnthropic } from "./providers/anthropic";
+import { resolveModel } from "./models";
 import { chatWithGroq, generateSummaryGroq, extractKeyInsightsGroq } from "./providers/groq";
 
 export async function chatWithDocument(
   userMessage: string,
   relevantChunks: SearchResult[],
   history: ChatMessage[],
-  modelId = getDefaultModelForPlan("FREE")
+  modelId?: string
 ): Promise<ReadableStream> {
-  const config = getModelConfig(modelId);
-  const provider = config?.provider ?? "groq";
-
-  switch (provider) {
-    case "anthropic":
-      return chatWithAnthropic(userMessage, relevantChunks, history, modelId);
-    case "groq":
-      return chatWithGroq(userMessage, relevantChunks, history, modelId);
-    default:
-      throw new Error(`Unknown provider: ${provider}`);
-  }
+  return chatWithGroq(userMessage, relevantChunks, history, resolveModel(modelId));
 }
 
-export async function generateSummary(text: string, modelId: string): Promise<string> {
-  const config = getModelConfig(modelId);
-  if (config?.provider === "groq") return generateSummaryGroq(text, modelId);
-  return generateSummaryAnthropic(text, modelId);
+export async function generateSummary(text: string, modelId?: string): Promise<string> {
+  return generateSummaryGroq(text, resolveModel(modelId));
 }
 
-export async function extractKeyInsights(text: string, modelId: string): Promise<string> {
-  const config = getModelConfig(modelId);
-  if (config?.provider === "groq") return extractKeyInsightsGroq(text, modelId);
-  return extractKeyInsightsAnthropic(text, modelId);
+export async function extractKeyInsights(text: string, modelId?: string): Promise<string> {
+  return extractKeyInsightsGroq(text, resolveModel(modelId));
 }

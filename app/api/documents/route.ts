@@ -5,8 +5,7 @@ import path from "path";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parsePDF, chunkText } from "@/lib/pdf";
-import { canUploadDocument } from "@/lib/plans";
-import { Plan } from "@/lib/types";
+import { canUploadDocument } from "@/lib/limits";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -47,11 +46,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Only PDF files are supported" }, { status: 400 });
   }
 
-  const check = canUploadDocument(
-    user.plan as Plan,
-    user._count.documents,
-    file.size
-  );
+  const check = canUploadDocument(user._count.documents, file.size);
 
   if (!check.allowed) {
     return NextResponse.json({ error: check.reason }, { status: 403 });

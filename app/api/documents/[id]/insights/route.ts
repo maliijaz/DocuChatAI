@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { generateSummary } from "@/lib/ai";
+import { extractKeyInsights } from "@/lib/ai";
 
 export async function POST(
   _request: Request,
@@ -31,17 +31,17 @@ export async function POST(
     );
   }
 
-  if (document.summary) {
-    return NextResponse.json({ summary: document.summary });
+  if (document.insights) {
+    return NextResponse.json({ insights: document.insights });
   }
 
   const fullText = document.chunks.map((c) => c.content).join("\n\n");
-  const summary = await generateSummary(fullText);
+  const insights = await extractKeyInsights(fullText);
 
   await prisma.document.update({
     where: { id: params.id },
-    data: { summary },
+    data: { insights },
   });
 
-  return NextResponse.json({ summary });
+  return NextResponse.json({ insights });
 }

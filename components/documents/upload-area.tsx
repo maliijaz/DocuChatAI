@@ -15,7 +15,7 @@ interface UploadAreaProps {
 
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
-export function UploadArea({ onUploadComplete, maxSizeMB = 5 }: UploadAreaProps) {
+export function UploadArea({ onUploadComplete, maxSizeMB = 25 }: UploadAreaProps) {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [progress, setProgress] = useState(0);

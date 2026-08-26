@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PLAN_LIMITS, PLAN_DETAILS } from "@/lib/plans";
-import { Plan } from "@/lib/types";
+import { MAX_DOCUMENTS } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,14 +36,8 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login");
 
-  const plan = (user.plan as Plan) ?? "FREE";
-  const limits = PLAN_LIMITS[plan];
-  const planDetails = PLAN_DETAILS[plan];
   const docCount = user._count.documents;
-  const docUsagePercent =
-    limits.maxDocuments === Infinity
-      ? 0
-      : Math.round((docCount / limits.maxDocuments) * 100);
+  const docUsagePercent = Math.round((docCount / MAX_DOCUMENTS) * 100);
 
   function getTimeOfDay() {
     const h = new Date().getHours();
@@ -82,16 +75,10 @@ export default async function DashboardPage() {
             </div>
             <div className="text-2xl font-bold">{docCount}</div>
             <div className="mt-2">
-              {limits.maxDocuments !== Infinity ? (
-                <>
-                  <Progress value={docUsagePercent} className="h-1.5" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {docCount} / {limits.maxDocuments} used
-                  </p>
-                </>
-              ) : (
-                <p className="text-xs text-emerald-600">Unlimited</p>
-              )}
+              <Progress value={docUsagePercent} className="h-1.5" />
+              <p className="text-xs text-muted-foreground mt-1">
+                {docCount} / {MAX_DOCUMENTS} used
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -119,14 +106,8 @@ export default async function DashboardPage() {
                 <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               </div>
             </div>
-            <div className="text-2xl font-bold">{planDetails.name}</div>
-            {plan === "FREE" ? (
-              <Link href="/dashboard/billing" className="text-xs text-primary hover:underline mt-1 inline-block">
-                Upgrade to Pro →
-              </Link>
-            ) : (
-              <p className="text-xs text-emerald-600 mt-1">Active subscription</p>
-            )}
+            <div className="text-2xl font-bold">Free</div>
+            <p className="text-xs text-emerald-600 mt-1">Everything unlocked, no cost</p>
           </CardContent>
         </Card>
       </div>

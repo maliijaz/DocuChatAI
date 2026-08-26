@@ -13,16 +13,10 @@ export default async function DocumentChatPage({ params }: { params: { id: strin
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
-  const [document, user] = await Promise.all([
-    prisma.document.findUnique({
-      where: { id: params.id, userId: session.user.id },
-      include: { _count: { select: { chunks: true, conversations: true } } },
-    }),
-    prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { plan: true },
-    }),
-  ]);
+  const document = await prisma.document.findUnique({
+    where: { id: params.id, userId: session.user.id },
+    include: { _count: { select: { chunks: true, conversations: true } } },
+  });
 
   if (!document) notFound();
 
@@ -76,7 +70,8 @@ export default async function DocumentChatPage({ params }: { params: { id: strin
           documentId={document.id}
           documentName={document.name}
           documentStatus={document.status}
-          userPlan={(user?.plan ?? "FREE") as "FREE" | "PRO" | "ENTERPRISE"}
+          hasSummary={!!document.summary}
+          hasInsights={!!document.insights}
         />
       </div>
     </div>

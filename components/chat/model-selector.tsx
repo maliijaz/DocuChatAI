@@ -6,11 +6,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ChevronDown, Cpu, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,12 +19,6 @@ interface ModelSelectorProps {
   disabled?: boolean;
 }
 
-const PROVIDER_LABELS: Record<string, string> = {
-  google: "Google",
-  groq: "Groq",
-  anthropic: "Anthropic",
-};
-
 export function ModelSelector({
   models,
   selectedModelId,
@@ -34,9 +26,6 @@ export function ModelSelector({
   disabled,
 }: ModelSelectorProps) {
   const current = models.find((m) => m.id === selectedModelId) ?? models[0];
-
-  const freeModels = models.filter((m) => m.badge === "Free");
-  const proModels = models.filter((m) => m.badge === "Pro");
 
   return (
     <DropdownMenu>
@@ -54,43 +43,17 @@ export function ModelSelector({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-72">
-        {freeModels.length > 0 && (
-          <>
-            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              Free models
-            </DropdownMenuLabel>
-            {freeModels.map((model) => (
-              <ModelItem
-                key={model.id}
-                model={model}
-                isSelected={model.id === selectedModelId}
-                providerLabel={PROVIDER_LABELS[model.provider]}
-                onSelect={() => onModelChange(model.id)}
-              />
-            ))}
-          </>
-        )}
-
-        {freeModels.length > 0 && proModels.length > 0 && (
-          <DropdownMenuSeparator />
-        )}
-
-        {proModels.length > 0 && (
-          <>
-            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-              Pro models
-            </DropdownMenuLabel>
-            {proModels.map((model) => (
-              <ModelItem
-                key={model.id}
-                model={model}
-                isSelected={model.id === selectedModelId}
-                providerLabel={PROVIDER_LABELS[model.provider]}
-                onSelect={() => onModelChange(model.id)}
-              />
-            ))}
-          </>
-        )}
+        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+          Models
+        </DropdownMenuLabel>
+        {models.map((model) => (
+          <ModelItem
+            key={model.id}
+            model={model}
+            isSelected={model.id === selectedModelId}
+            onSelect={() => onModelChange(model.id)}
+          />
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -99,12 +62,10 @@ export function ModelSelector({
 function ModelItem({
   model,
   isSelected,
-  providerLabel,
   onSelect,
 }: {
   model: ModelConfig;
   isSelected: boolean;
-  providerLabel: string;
   onSelect: () => void;
 }) {
   return (
@@ -116,10 +77,7 @@ function ModelItem({
         className={cn("h-3.5 w-3.5 mt-0.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
       />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-sm">{model.name}</span>
-          <span className="text-[10px] text-muted-foreground ml-auto shrink-0">{providerLabel}</span>
-        </div>
+        <span className="font-medium text-sm">{model.name}</span>
         <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
           {model.description}
         </p>

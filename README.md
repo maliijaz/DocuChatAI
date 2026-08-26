@@ -1,14 +1,16 @@
 # DocuChat AI
 
-An AI-powered web application that lets you upload PDF documents and chat with them using natural language. Ask questions, generate summaries, extract key insights, and more — all powered by large language models.
+A free, AI-powered web application that lets you upload PDF documents and chat with them using natural language. Ask questions, generate summaries, extract key insights, and more.
 
 ## Features
 
 - **PDF Upload & Processing** — drag-and-drop PDF upload with automatic text extraction and chunking
 - **Conversational Chat** — multi-turn conversations with your documents, with streaming responses
-- **BM25 Semantic Search** — finds the most relevant document excerpts for each question (no external vector DB needed)
-- **Multiple AI Models** — choose between free (Groq/Llama) and premium (Anthropic Claude) models
-- **Plan Tiers** — Free, Pro ($19/mo), Enterprise ($79/mo) with Stripe billing
+- **Conversation History** — every chat is saved; switch between past conversations or start a new one per document
+- **Document Summaries & Key Insights** — generate a structured summary or extract the most important points on demand
+- **BM25 Search** — finds the most relevant document excerpts for each question (no external vector DB needed)
+- **Multiple Free AI Models** — choose between fast and more capable Llama models via Groq
+- **100% Free** — no plans, no limits beyond generous per-account fair-use caps, no credit card
 - **Auth** — email/password registration with optional Google OAuth
 - **Dark Mode** — full light/dark theme support
 
@@ -20,9 +22,7 @@ An AI-powered web application that lets you upload PDF documents and chat with t
 | Styling | Tailwind CSS + shadcn/ui |
 | Database | Prisma ORM + SQLite |
 | Auth | NextAuth.js v4 |
-| AI (Free) | Groq — Llama 3.1 8B, Llama 3.3 70B |
-| AI (Pro) | Anthropic — Claude Haiku 4.5, Claude Sonnet 4.6 |
-| Payments | Stripe |
+| AI | Groq — GPT-OSS 20B, GPT-OSS 120B |
 | PDF Parsing | pdf-parse |
 
 ## Getting Started
@@ -52,9 +52,8 @@ Open `.env` and fill in the required values:
 |---|---|---|
 | `DATABASE_URL` | Yes | SQLite path — keep as `file:./dev.db` for local dev |
 | `NEXTAUTH_SECRET` | Yes | Run `openssl rand -base64 32` to generate |
-| `GROQ_API_KEY` | Yes (free tier) | Get from [console.groq.com](https://console.groq.com) — free |
-| `ANTHROPIC_API_KEY` | Pro/Enterprise only | Get from [console.anthropic.com](https://console.anthropic.com) |
-| `STRIPE_*` | Optional | Leave empty to disable payments |
+| `GROQ_API_KEY` | Yes | Get a free key from [console.groq.com](https://console.groq.com) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional | Enables "Sign in with Google" |
 
 ### 4. Set up the database
 
@@ -72,14 +71,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Available Models
 
-| Model | Provider | Plans |
-|---|---|---|
-| Llama 3.1 8B | Groq | Free, Pro, Enterprise |
-| Llama 3.3 70B | Groq | Free, Pro, Enterprise |
-| Claude Haiku 4.5 | Anthropic | Pro, Enterprise |
-| Claude Sonnet 4.6 | Anthropic | Pro, Enterprise |
+| Model | Provider |
+|---|---|
+| Llama 3.1 8B | Groq |
+| Llama 3.3 70B | Groq |
 
-Free-tier users can choose any Groq model. Pro/Enterprise users can also use Anthropic models. The model selector is available in the chat header.
+All models are free for every user. The model selector is available in the chat header.
 
 ## Project Structure
 
@@ -87,25 +84,21 @@ Free-tier users can choose any Groq model. Pro/Enterprise users can also use Ant
 app/
 ├── (auth)/           # Login & register pages
 ├── api/              # API routes
-│   ├── documents/    # Upload, list, delete, chat, summary
-│   ├── billing/      # Stripe checkout & portal
-│   └── webhooks/     # Stripe webhook handler
+│   └── documents/    # Upload, list, delete, chat, summary, insights
 ├── dashboard/        # Protected app pages
 │   ├── documents/    # Document list + upload
 │   ├── documents/[id]/ # Chat interface
-│   ├── billing/      # Plan management
 │   └── settings/     # Profile settings
 └── page.tsx          # Landing page
 
 lib/
-├── ai.ts             # AI routing (picks provider by model)
-├── models.ts         # Model registry & plan access rules
-├── plans.ts          # Plan limits & features
+├── ai.ts             # AI routing (Groq)
+├── models.ts         # Model registry
+├── limits.ts         # Upload limits (doc count, file size)
 ├── search.ts         # BM25 retrieval
-├── pdf.ts            # PDF parsing & chunking
+├── pdf.ts             # PDF parsing & chunking
 └── providers/
-    ├── anthropic.ts  # Claude streaming chat
-    └── groq.ts       # Llama streaming chat
+    └── groq.ts        # Llama streaming chat, summaries & insights
 ```
 
 ## Scripts
@@ -125,7 +118,6 @@ For production:
 1. Set `NEXTAUTH_URL` to your public domain
 2. Set `NEXT_PUBLIC_APP_URL` to your public domain
 3. Use a PostgreSQL database and update `DATABASE_URL` + `prisma/schema.prisma` datasource provider
-4. Configure Stripe webhooks to point to `https://your-domain.com/api/webhooks/stripe`
 
 ## License
 

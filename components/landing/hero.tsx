@@ -27,7 +27,7 @@ export function Hero() {
         >
           <Badge className="mb-6 gap-1.5 border-violet-500/30 bg-violet-500/10 text-violet-300 px-4 py-1.5">
             <Sparkles className="h-3.5 w-3.5" />
-            Powered by Claude AI
+            100% free, powered by open AI models
           </Badge>
 
           <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight">
