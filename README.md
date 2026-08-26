@@ -9,7 +9,7 @@ A free, AI-powered web application that lets you upload PDF documents and chat w
 - **Conversation History** — every chat is saved; switch between past conversations or start a new one per document
 - **Document Summaries & Key Insights** — generate a structured summary or extract the most important points on demand
 - **BM25 Search** — finds the most relevant document excerpts for each question (no external vector DB needed)
-- **Multiple Free AI Models** — choose between fast and more capable Llama models via Groq
+- **Multiple Free AI Models** — choose between fast and more capable open-weight models via Groq
 - **100% Free** — no plans, no limits beyond generous per-account fair-use caps, no credit card
 - **Auth** — email/password registration with optional Google OAuth
 - **Dark Mode** — full light/dark theme support
@@ -20,10 +20,10 @@ A free, AI-powered web application that lets you upload PDF documents and chat w
 |---|---|
 | Framework | Next.js 14 (App Router) + TypeScript |
 | Styling | Tailwind CSS + shadcn/ui |
-| Database | Prisma ORM + SQLite |
+| Database | Prisma ORM + Postgres (e.g. Neon) |
 | Auth | NextAuth.js v4 |
 | AI | Groq — GPT-OSS 20B, GPT-OSS 120B |
-| PDF Parsing | pdf-parse |
+| PDF Parsing | unpdf |
 
 ## Getting Started
 
@@ -50,7 +50,8 @@ Open `.env` and fill in the required values:
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | Yes | SQLite path — keep as `file:./dev.db` for local dev |
+| `DATABASE_URL` | Yes | Pooled Postgres connection string (e.g. from a free [Neon](https://neon.tech) project) |
+| `DATABASE_URL_UNPOOLED` | Yes | Direct (non-pooled) Postgres connection string, used by Prisma for schema pushes |
 | `NEXTAUTH_SECRET` | Yes | Run `openssl rand -base64 32` to generate |
 | `GROQ_API_KEY` | Yes | Get a free key from [console.groq.com](https://console.groq.com) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional | Enables "Sign in with Google" |
@@ -73,8 +74,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Model | Provider |
 |---|---|
-| Llama 3.1 8B | Groq |
-| Llama 3.3 70B | Groq |
+| GPT-OSS 20B | Groq |
+| GPT-OSS 120B | Groq |
 
 All models are free for every user. The model selector is available in the chat header.
 
@@ -112,12 +113,17 @@ lib/
 
 ## Deployment
 
-The app is ready to deploy to any Node.js platform (Vercel, Railway, Render, etc.).
+The app is deployed for free on **Vercel** (Hobby plan) with a **Neon** Postgres database (also free, provisioned via Vercel's marketplace integration). No local disk is used anywhere — uploaded PDFs are parsed entirely in memory during the upload request, so nothing needs a persistent filesystem, which makes the app a good fit for serverless hosting.
 
-For production:
-1. Set `NEXTAUTH_URL` to your public domain
-2. Set `NEXT_PUBLIC_APP_URL` to your public domain
-3. Use a PostgreSQL database and update `DATABASE_URL` + `prisma/schema.prisma` datasource provider
+To deploy your own copy:
+
+1. `vercel link` to create/link a Vercel project.
+2. `vercel install neon --plan free_v3` to provision a free Postgres database and auto-populate `DATABASE_URL` / `DATABASE_URL_UNPOOLED`.
+3. Set the remaining env vars with `vercel env add`: `NEXTAUTH_SECRET` (generate with `openssl rand -base64 32`), `GROQ_API_KEY`, `NEXTAUTH_URL`, and `NEXT_PUBLIC_APP_URL` (the last two should be your Vercel production domain).
+4. `npx prisma db push` once, pointed at the new database, to create the schema.
+5. `vercel deploy --prod`.
+
+The `postinstall` script (`prisma generate`) is required for Prisma Client to regenerate correctly on Vercel's cached-dependency builds.
 
 ## License
 

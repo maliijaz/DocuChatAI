@@ -1,13 +1,13 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import path from "path";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parsePDF, chunkText } from "@/lib/pdf";
 import { canUploadDocument } from "@/lib/limits";
 
-export async function GET(request: Request) {
+export const maxDuration = 60;
+
+export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -52,31 +52,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: check.reason }, { status: 403 });
   }
 
-  // Save file to disk
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
-  const timestamp = Date.now();
-  const safeFileName = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-  const uploadDir = path.join(process.cwd(), "uploads");
-  const filePath = path.join(uploadDir, safeFileName);
-  await writeFile(filePath, buffer);
 
-  // Create document record
   const document = await prisma.document.create({
     data: {
       name: file.name,
       size: file.size,
       mimeType: file.type,
-      filePath: safeFileName,
       status: "PROCESSING",
       userId: session.user.id,
     },
   });
 
-  // Process PDF asynchronously
-  processPDF(document.id, buffer).catch(console.error);
+  await processPDF(document.id, buffer);
 
-  return NextResponse.json(document, { status: 201 });
+  const ready = await prisma.document.findUnique({ where: { id: document.id } });
+
+  return NextResponse.json(ready ?? document, { status: 201 });
 }
 
 async function processPDF(documentId: string, buffer: Buffer) {
@@ -86,7 +79,7 @@ async function processPDF(documentId: string, buffer: Buffer) {
 
     await prisma.document.update({
       where: { id: documentId },
-      data: { pageCount, wordCount, status: "PROCESSING" },
+      data: { pageCount, wordCount },
     });
 
     await prisma.documentChunk.createMany({

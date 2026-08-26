@@ -1,7 +1,5 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { unlink } from "fs/promises";
-import path from "path";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
@@ -43,14 +41,6 @@ export async function DELETE(
 
   if (!document) {
     return NextResponse.json({ error: "Document not found" }, { status: 404 });
-  }
-
-  // Delete file from disk
-  try {
-    const filePath = path.join(process.cwd(), "uploads", document.filePath);
-    await unlink(filePath);
-  } catch {
-    // File might not exist, continue with DB deletion
   }
 
   await prisma.document.delete({ where: { id: params.id } });

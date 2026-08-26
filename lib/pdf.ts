@@ -1,3 +1,5 @@
+import { extractText, getDocumentProxy } from "unpdf";
+
 interface ParsedPDF {
   text: string;
   pageCount: number;
@@ -11,15 +13,15 @@ interface Chunk {
 }
 
 export async function parsePDF(buffer: Buffer): Promise<ParsedPDF> {
-  const pdfParse = (await import("pdf-parse")).default;
-  const data = await pdfParse(buffer);
+  const pdf = await getDocumentProxy(new Uint8Array(buffer));
+  const { text: pages, totalPages } = await extractText(pdf, { mergePages: false });
 
-  const text = data.text.trim();
+  const text = pages.join("\n\n").trim();
   const wordCount = text.split(/\s+/).filter(Boolean).length;
 
   return {
     text,
-    pageCount: data.numpages,
+    pageCount: totalPages,
     wordCount,
   };
 }
