@@ -2,6 +2,8 @@
 
 A free, AI-powered web application that lets you upload PDF documents and chat with them using natural language. Ask questions, generate summaries, extract key insights, and more.
 
+**🔗 Live app: [docuchat-ai-seven.vercel.app](https://docuchat-ai-seven.vercel.app)**
+
 ## Features
 
 - **PDF Upload & Processing** — drag-and-drop PDF upload with automatic text extraction and chunking
